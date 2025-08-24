@@ -1,8 +1,9 @@
+
 using Authentication.Services;
-using Authentication.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+await UserService.PrintAllUsers();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

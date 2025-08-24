@@ -3,32 +3,33 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Authentication.Controllers
 {
+    #region Models
     public class RegisterModel()
     {
-        public string Username { get; set; }
-        public string Name { get; set; }
-        public string Password { get; set; }
-        public string Email { get; set; }   
+        public required string Username { get; set; }
+        public required string Name { get; set; }
+        public required string Password { get; set; }
+        public required string Email { get; set; }   
 
     }
 
     public class LoginModel()
     {
-        public string Username { get; set; }
-        public string Password { get; set; }    
+        public  required string Username { get; set; }
+        public  required string Password { get; set; }    
     }
-
     public class GetUserModel()
     {
-        public string Username;
+        public required string Username;
     }
+
+    #endregion
+
 
     [ApiController]
     [Route("[controller]")]
     public class AuthenticatorController : ControllerBase
     {
-        private static List<User> _users = new List<User>();
-
         private readonly ILogger<AuthenticatorController> _logger;
 
         public AuthenticatorController(ILogger<AuthenticatorController> logger)
@@ -36,7 +37,7 @@ namespace Authentication.Controllers
             _logger = logger;
         }
 
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel userToRegister)
         {
             if (await UserService.Register(userToRegister.Username, userToRegister.Name, userToRegister.Email, userToRegister.Password))
@@ -52,7 +53,7 @@ namespace Authentication.Controllers
 
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginModel userToLogin)
         {
             if (string.IsNullOrEmpty(userToLogin.Username) || string.IsNullOrEmpty(userToLogin.Password))
@@ -74,7 +75,7 @@ namespace Authentication.Controllers
             }
         }
 
-        [HttpPost("delete")]
+        [HttpPost("Delete")]
         public async Task<IActionResult> DeleteUser([FromBody] LoginModel userToLogin)
         {
             if (string.IsNullOrEmpty(userToLogin.Username) || string.IsNullOrEmpty(userToLogin.Password))
@@ -96,8 +97,6 @@ namespace Authentication.Controllers
             }
         }
 
-
-        [HttpPost("print")]
         public async Task<IActionResult> PrintAllUsers()
         {
             await UserService.PrintAllUsers();

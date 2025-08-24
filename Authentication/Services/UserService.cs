@@ -1,5 +1,6 @@
 ﻿using Authentication.Utils;
 using Microsoft.EntityFrameworkCore;
+using Authentication.Models;
 
 namespace Authentication.Services
 {
@@ -15,21 +16,26 @@ namespace Authentication.Services
 
                 if (user == null)
                 {
-                    user = new User();
-                    user.Username = username;
-                    user.Name = name;
-                    user.EmailID = email;
-                    user.Password = Hasher.GetHashString(passwd);
+                    user = new User()
+                    {
+                        Username = username,
+                        Name = name,
+                        EmailID = email,
+                        Password = Hasher.GetHashString(passwd)
+                    };
 
                     Console.WriteLine($"Username: {user.Username}, Email: {user.EmailID}, Password Hash: {user.Password}");
                     
                     db.Add(user);
-                    db.SaveChanges();
+                    await db.SaveChangesAsync();
 
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
-
-            return true;
         }
 
         public static async Task<bool> DeleteUser(string username, string password)
@@ -49,6 +55,16 @@ namespace Authentication.Services
             }
             
             return false;
+        }
+
+        public static async Task<bool> DoesUserExit(string username)
+        {
+            using (var db = new UserContext())
+            {
+                var user = await db.UserSet.FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+
+                return user != null;
+            }
         }
 
         public static async Task<bool> Login(string username, string password)
@@ -82,10 +98,9 @@ namespace Authentication.Services
                     return false;
 
                 }
-                
-
             }
         }
+
         public static async Task PrintAllUsers()
         {
             using (var db = new UserContext())
@@ -105,6 +120,7 @@ namespace Authentication.Services
                 }
             }
         }
+
 
     }
 }
