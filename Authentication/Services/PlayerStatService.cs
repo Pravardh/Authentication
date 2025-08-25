@@ -1,4 +1,5 @@
 ﻿using Authentication.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Authentication.Services

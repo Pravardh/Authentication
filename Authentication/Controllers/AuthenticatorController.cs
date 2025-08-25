@@ -1,5 +1,10 @@
 using Authentication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Authentication.Controllers
 {
@@ -22,7 +27,10 @@ namespace Authentication.Controllers
     {
         public required string Username;
     }
-
+    public class AuthenticatedResponse
+    {
+        public string? Token { get; set; }
+    }
     #endregion
 
 
@@ -66,7 +74,18 @@ namespace Authentication.Controllers
             if (loginResult)
             {
                 _logger.Log(LogLevel.Information, $"User {userToLogin.Username} logged in successfully");
-                return Ok("Successfully logged in");
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecretKey@345OLEOLEOLEolesadasdasdadjk2333@"));
+                var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                var tokeOptions = new JwtSecurityToken(
+                    issuer: "http://localhost:5097",
+                    audience: "http://localhost:5097",
+                    claims: new List<Claim>(),
+                    expires: DateTime.Now.AddMinutes(5),
+                    signingCredentials: signinCredentials
+                );
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+
+                return Ok(tokenString);
             }
             else
             {
@@ -75,7 +94,8 @@ namespace Authentication.Controllers
             }
         }
 
-        [HttpPost("Delete")]
+        [HttpPost("DeleteUser")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser([FromBody] LoginModel userToLogin)
         {
             if (string.IsNullOrEmpty(userToLogin.Username) || string.IsNullOrEmpty(userToLogin.Password))

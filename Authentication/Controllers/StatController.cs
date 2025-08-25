@@ -1,4 +1,5 @@
 ﻿using Authentication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Authentication.Controllers
@@ -23,6 +24,7 @@ namespace Authentication.Controllers
     public class StatController : ControllerBase
     {
         [HttpPost("SaveStat")]
+        [Authorize]
         public async Task<IActionResult> SaveStat([FromBody] SaveStatModel saveStatsInfo)
         {
             if (await PlayerStatService.SaveStat(saveStatsInfo.Username, saveStatsInfo.Key, saveStatsInfo.Value))
@@ -36,8 +38,13 @@ namespace Authentication.Controllers
         }
 
         [HttpPost("GetStat")]
+        [Authorize]
         public async Task<IActionResult> GetStat([FromBody] GetStatModel getStatsInfo)
         {
+            Console.WriteLine("GetStat endpoint hit - user is authenticated");
+            Console.WriteLine($"User identity: {User.Identity.Name}");
+            Console.WriteLine($"User claims count: {User.Claims.Count()}");
+
             return Ok(await PlayerStatService.GetStatValue(getStatsInfo.Username, getStatsInfo.Key));
         }
     }
