@@ -32,6 +32,7 @@ builder.Services.AddAuthentication(opt => {
 
 
 await UserService.PrintAllUsers();
+//Console.WriteLine(await UserService.ChangePassword("prav123", "hsSj24kkLL#@", "prAv@3389f"));
 
 var app = builder.Build();
 

@@ -6,8 +6,34 @@ namespace Authentication.Services
 {
     public static class UserService
     {
+        public static bool IsPasswordStrong(string password)
+        {
+            if (password.Length < 8)
+                return false;
+
+            bool hasUpper = false;
+            bool hasLower = false;
+            bool hasDigit = false;
+            bool hasSpecial = false;
+
+            foreach (char c in password)
+            {
+                if (char.IsUpper(c)) hasUpper = true;
+                else if (char.IsLower(c)) hasLower = true;
+                else if (char.IsDigit(c)) hasDigit = true;
+                else if (!char.IsLetterOrDigit(c)) hasSpecial = true;
+            }
+
+            return hasUpper && hasLower && hasDigit && hasSpecial;
+        }
+
         public static async Task<bool> Register(string username, string name, string email, string passwd)
         {
+            if (!IsPasswordStrong(passwd))
+            {
+                Console.WriteLine("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
+                return false;
+            }
 
             using (var db = new UserContext())
             {
@@ -25,7 +51,7 @@ namespace Authentication.Services
                     };
 
                     Console.WriteLine($"Username: {user.Username}, Email: {user.EmailID}, Password Hash: {user.Password}");
-                    
+
                     db.Add(user);
                     await db.SaveChangesAsync();
 
@@ -49,11 +75,48 @@ namespace Authentication.Services
                 {
                     db.Remove(user);
                     db.SaveChanges();
-                
+
                     return true;
                 }
             }
-            
+
+            return false;
+        }
+
+        public static async Task<bool> ChangePassword(string username, string currentPassword, string newPassword)
+        {
+            if (!IsPasswordStrong(newPassword))
+            {
+                Console.WriteLine("Password must be at least 8 characters long and contain at least one uppercase letter, " +
+                    "one lowercase letter, one digit, and one special character.");
+                return false;
+            }
+
+            using (var db = new UserContext())
+            {
+                var user = await db.UserSet.FirstOrDefaultAsync(u =>
+                    u.Username.ToLower() == username.ToLower());
+
+                if (user != null)
+                {
+                    string newPasswordHash = Hasher.GetHashString(newPassword);
+
+                    if (Hasher.GetHashString(currentPassword) != user.Password)
+                    {
+                        Console.WriteLine("Current password does not match user's password");
+                        return false;
+                    }
+
+                    Console.WriteLine($"Old Password: {user.Password}, New Password: {newPasswordHash}");
+                    user.Password = newPasswordHash;
+
+                    db.Update(user);
+                    db.SaveChanges();
+
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -116,7 +179,7 @@ namespace Authentication.Services
                 Console.WriteLine("=== Users in Database ===");
                 foreach (var u in users)
                 {
-                    Console.WriteLine($"Username: {u.Username}, Email: {u.EmailID}, Name: {u.Name}");
+                    Console.WriteLine($"Username: {u.Username}, Email: {u.EmailID}, Name: {u.Name}, ChangePassword: {u.Password}");
                 }
             }
         }

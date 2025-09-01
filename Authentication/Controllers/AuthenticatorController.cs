@@ -1,5 +1,7 @@
 using Authentication.Services;
+using Authentication.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,6 +24,12 @@ namespace Authentication.Controllers
     {
         public  required string Username { get; set; }
         public  required string Password { get; set; }    
+    }
+    public class ChangePasswordModel()
+    {
+        public  required string Username { get; set; }
+        public  required string Password { get; set; }    
+        public  required string NewPassword { get; set; }    
     }
     public class GetUserModel()
     {
@@ -93,6 +101,37 @@ namespace Authentication.Controllers
                 return Unauthorized("Cannot login. Username or password is incorrect");
             }
         }
+
+        
+        [Authorize]
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel userPasswordData)
+        {
+            if (string.IsNullOrEmpty(userPasswordData.Username) || string.IsNullOrEmpty(userPasswordData.Password) || string.IsNullOrEmpty(userPasswordData.NewPassword))
+            {
+                return BadRequest("Username, password and new password is required");
+            }
+
+            string currentPassword = userPasswordData.Password;
+            string newPassword = userPasswordData.NewPassword;
+
+            string currentPasswordHash = Hasher.GetHashString(currentPassword);
+            string newPasswordHash = Hasher.GetHashString(newPassword);
+
+            if (currentPassword == newPassword)
+            {
+                return BadRequest("Current password cannot be the same as new password");
+            }
+            
+
+            if (await UserService.ChangePassword(userPasswordData.Username, userPasswordData.Password, userPasswordData.NewPassword))
+            {
+                return Ok("Password changed successfully");
+            }
+            return BadRequest("Password is wrong or new password is not strong enough. Failed to change password");
+        }
+
+
 
         [HttpPost("DeleteUser")]
         [Authorize]
