@@ -29,11 +29,6 @@ namespace Authentication.Services
 
         public static async Task<bool> Register(string username, string name, string email, string passwd)
         {
-            if (!IsPasswordStrong(passwd))
-            {
-                Console.WriteLine("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.");
-                return false;
-            }
 
             using (var db = new UserContext())
             {
@@ -85,12 +80,6 @@ namespace Authentication.Services
 
         public static async Task<bool> ChangePassword(string username, string currentPassword, string newPassword)
         {
-            if (!IsPasswordStrong(newPassword))
-            {
-                Console.WriteLine("Password must be at least 8 characters long and contain at least one uppercase letter, " +
-                    "one lowercase letter, one digit, and one special character.");
-                return false;
-            }
 
             using (var db = new UserContext())
             {
